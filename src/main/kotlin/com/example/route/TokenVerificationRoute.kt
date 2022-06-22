@@ -19,50 +19,61 @@ fun Route.tokenVerificationRoute(app: Application) {
 
     post(EndPoints.TokenVerification.path) {
 
-
-
         val request = call.receive<ApiRequest>()
+
+        app.log.info("request is ${request.tokenId}")
+
+
+
         if (request.tokenId.isNotEmpty()) {
-            val result = verifyGoogleTokenId(request.tokenId)
+
+            val result = verifyGoogleTokeId(tokenId = request.tokenId,app)
+
+            app.log.info("result is $result")
+
+
+
             if (result != null) {
-                app.log.info("Token Verification Success")
-//                val sub = result.payload["sub"].toString()
+                app.log.info("TOKEN VERIFICATION SUCCESS")
+
+                // val sub = result.payload["sub"].toString()
                 val name = result.payload["name"].toString()
-                val emailAddress = result.payload["email"].toString()
-            //    val profilePhoto = result.payload["picture"].toString()
-                app.log.info("TOKEN SUCCESSFULLY VERIFIED $name $emailAddress")
+                val email = result.payload["email"].toString()
+                //  val profilePhoto = result.payload["picture"].toString()
+
+                app.log.info("TOKEN VERIFICATION SUCCESS FOR $name with email of $email")
+
+
+
                 call.sessions.set(UserSession(id = "123", "James"))
                 call.respondRedirect(EndPoints.Authorized.path)
             } else {
-                app.log.info("Token Verification Failed")
+                app.log.info("TOKEN VERIFICATION FAILED")
                 call.respondRedirect(EndPoints.Unauthorized.path)
             }
-        } else {
-            app.log.info("Token Verification Failed Empty Token ID")
-            call.respondRedirect(EndPoints.Unauthorized.path)
 
+        } else {
+            app.log.info("EMPTY TOKEN ID ")
+            call.respondRedirect(EndPoints.Unauthorized.path)
         }
 
 
     }
 
-} 
+}
 
-fun verifyGoogleTokenId(tokenID: String): GoogleIdToken? {
+fun verifyGoogleTokeId(tokenId: String?,app: Application): GoogleIdToken? {
 
-    try {
-        val verifier = GoogleIdTokenVerifier.Builder(
-            NetHttpTransport(), GsonFactory()
-        ).setAudience(listOf(AUDIENCE))
-            .setIssuer(ISSUER).build()
-
-        return verifier.verify(tokenID)
-    }catch (e:Exception){
-
-      return null
-
+    return try {
+        val verifier = GoogleIdTokenVerifier.Builder(NetHttpTransport(), GsonFactory())
+            .setAudience(listOf(AUDIENCE))
+            .setIssuer(ISSUER)
+            .build()
+        verifier.verify(tokenId)
+    } catch (ex: Exception) {
+        app.log.info("Error message ${ex.message.toString()}")
+        null
     }
-
 
 
 }

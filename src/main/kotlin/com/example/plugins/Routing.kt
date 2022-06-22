@@ -15,9 +15,11 @@ fun Application.configureRouting() {
     routing {
 
         rootRoute()
-        unauthorizedRoute()
         tokenVerificationRoute(application)
         authorizedRoute()
+        unauthorizedRoute()
+
+
 
         }
 
